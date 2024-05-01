@@ -87,6 +87,11 @@ public class Game{
             return false; 
         }
 
+        if(Coordinates.Any(c => c.X == CurrentCoordinate.X && c.Y == CurrentCoordinate.Y))
+        {
+            return false;
+        }
+
         return true;
     }
 
