@@ -1,32 +1,37 @@
-using System.ComponentModel;
+using System.Text;
 
-public class Game{
-    public int Score {get; set;} = 0;
+public class Game
+{
+    public byte Score { get; set; } = 0;
+    public byte HighScore { get; set; } = 0;
 
-    public Coordinate Point {get; set;}  
+    private StringBuilder sb = new StringBuilder(180);
 
-    public Coordinate CurrentCoordinate = new Coordinate{
-        X = 1, Y = 1 
+    public Coordinate Point { get; set; }
+
+    public Coordinate CurrentCoordinate = new Coordinate
+    {
+        X = 1,
+        Y = 1
     };
     public Queue<Coordinate> Coordinates = new Queue<Coordinate>();
 
-    public Move Direction {get; set;} = Move.RIGHT;
+    public Move Direction { get; set; } = Move.RIGHT;
 
-    private Coordinate GenerateNewPoint(){
+    private Coordinate GenerateNewPoint()
+    {
         var randomizer = new Random();
-        
-        int x,y;
-        
+
+        byte x, y;
+
         do
         {
-            x = (int)Math.Ceiling(randomizer.NextDouble() * 10);
-            y = (int)Math.Ceiling(randomizer.NextDouble() * 10);
+            x = (byte)Math.Ceiling(randomizer.NextDouble() * 10);
+            y = (byte)Math.Ceiling(randomizer.NextDouble() * 10);
         } while (Coordinates.Any(c => c.X == x && c.Y == y));
+
+        var coord = new Coordinate
         {
-
-        }
-
-        var coord = new Coordinate{
             X = x,
             Y = y
         };
@@ -34,9 +39,12 @@ public class Game{
         return coord;
     }
 
-    public bool ProcessMove(Move move){
-        if(Direction == Move.UP || Direction == Move.DOWN){
-            switch(move){
+    public bool ProcessMove(Move move)
+    {
+        if (Direction == Move.UP || Direction == Move.DOWN)
+        {
+            switch (move)
+            {
                 case Move.LEFT:
                     CurrentCoordinate.X--;
                     Direction = move;
@@ -44,17 +52,23 @@ public class Game{
                 case Move.RIGHT:
                     CurrentCoordinate.X++;
                     Direction = move;
-                    break;   
+                    break;
                 default:
-                    if(Direction == Move.UP){
+                    if (Direction == Move.UP)
+                    {
                         CurrentCoordinate.Y--;
-                    }else{
+                    }
+                    else
+                    {
                         CurrentCoordinate.Y++;
                     }
                     break;
             }
-        }else{
-            switch(move){
+        }
+        else
+        {
+            switch (move)
+            {
                 case Move.UP:
                     CurrentCoordinate.Y--;
                     Direction = move;
@@ -62,32 +76,34 @@ public class Game{
                 case Move.DOWN:
                     CurrentCoordinate.Y++;
                     Direction = move;
-                    break;   
+                    break;
                 default:
-                    if(Direction == Move.LEFT){
+                    if (Direction == Move.LEFT)
+                    {
                         CurrentCoordinate.X--;
-                    }else{
+                    }
+                    else
+                    {
                         CurrentCoordinate.X++;
                     }
                     break;
             }
         }
-        bool IsStillInGame = this.IsStillInGame();
+        bool IsStillIn = this.IsStillInGame();
         UpdateSnake();
 
-        return IsStillInGame;
+        return IsStillIn;
     }
 
-    private bool IsStillInGame(){
-        if(CurrentCoordinate.X > 10 || CurrentCoordinate.X < 1 || CurrentCoordinate.Y > 10 || CurrentCoordinate.Y < 1){
+    private bool IsStillInGame()
+    {
+        if (CurrentCoordinate.X > 10 || CurrentCoordinate.X < 1 || CurrentCoordinate.Y > 10 || CurrentCoordinate.Y < 1)
+        {
             return false;
         }
-        
-        if(Coordinates.Where(x => x.X == CurrentCoordinate.X && x.Y == CurrentCoordinate.Y).Count() > 1){
-            return false; 
-        }
 
-        if(Coordinates.Any(c => c.X == CurrentCoordinate.X && c.Y == CurrentCoordinate.Y))
+        if (Coordinates.Any(c => (c.X == CurrentCoordinate.X && c.Y == CurrentCoordinate.Y)
+        || (c.X == CurrentCoordinate.X && c.Y == CurrentCoordinate.Y)))
         {
             return false;
         }
@@ -95,63 +111,175 @@ public class Game{
         return true;
     }
 
-    private void UpdateSnake(){
-        if(CurrentCoordinate.X == Point.X && CurrentCoordinate.Y == Point.Y){
+    private void UpdateSnake()
+    {
+        if (CurrentCoordinate.X == Point.X && CurrentCoordinate.Y == Point.Y)
+        {
             Score++;
             Point = GenerateNewPoint();
-        }else{
+        }
+        else
+        {
             Coordinates.TryDequeue(out Coordinate coordinate);
         }
 
         Coordinates.Enqueue(CurrentCoordinate);
     }
 
-    public string[] DrawScreen(){        
-        if(Point.X == 0){
+    public string DrawScreen()
+    {
+        if (Point.X == 0)
+        {
             Point = GenerateNewPoint();
         }
-        string[] screen = new string[12];
+        sb.Clear();
+        sb = new StringBuilder(200);
+        sb.Append($"Score: {Score}\nHighscore: {HighScore}\n");
+        char nextChar = '^';
 
-        for(int i = 0; i < 12; i++){
-            var line = "";
-            for (int j = 0; j < 12; j++)
+        for (byte i = 0; i < 12; i++)
+        {
+            for (byte j = 0; j < 12; j++)
             {
-                var nextChar = "";
-                if(i == 0 || j == 0 || i == 11 || j == 11){
-                    nextChar = "-";
-                    line = $"{line}{nextChar}";
-                    continue;
-                }
-
-                if(CurrentCoordinate.X == j && CurrentCoordinate.Y == i){
-                    nextChar = "0";
-                    line = $"{line}{nextChar}";
-                    continue;
-                }
-
-                if(Point.X == j && Point.Y == i){
-                    nextChar = "+";
-                    line = $"{line}{nextChar}";
-                    continue;
-                }
-
-                foreach (var coordinate in Coordinates)
+                if (i == 0)
                 {
-                    if (coordinate.X == j && coordinate.Y == i)
-                    {
-                        nextChar = "o";
-                        line = $"{line}{nextChar}";
-                        continue;
-                    }
+                    nextChar = '_';
+                    sb.Append(nextChar);
+                    continue;
+                }
+                if (j == 0 || j == 11)
+                {
+                    nextChar = '|';
+                    sb.Append(nextChar);
+                    continue;
+                }
+                if (i == 11)
+                {
+                    nextChar = '-';
+                    sb.Append(nextChar);
+                    continue;
                 }
 
-                nextChar = " ";
-                line = $"{line}{nextChar}";
+                if (CurrentCoordinate.X == j && CurrentCoordinate.Y == i)
+                {
+                    switch (Direction)
+                    {
+                        case Move.UP:
+                            nextChar = '^';
+                            break;
+                        case Move.DOWN:
+                            nextChar = 'v';
+                            break;
+                        case Move.LEFT:
+                            nextChar = '<';
+                            break;
+                        case Move.RIGHT:
+                            nextChar = '>';
+                            break;
+                    }
+                    sb.Append(nextChar);
+                    continue;
+                }
+
+                if (Point.X == j && Point.Y == i)
+                {
+                    nextChar = '@';
+                    sb.Append(nextChar);
+                    continue;
+                }
+
+                if (Coordinates.Any(c => c.X == j && c.Y == i))
+                {
+                    nextChar = '#';
+                    sb.Append(nextChar);
+                    continue;
+                }
+
+                nextChar = ' ';
+                sb.Append(nextChar);
                 continue;
             }
-            screen[i] = line;
+            sb.AppendLine();
+        }
+        return sb.ToString();
+    }
+
+    public void Run()
+    {
+        bool quit = false;
+
+        Console.BackgroundColor = ConsoleColor.Black;
+        Console.ForegroundColor = ConsoleColor.DarkGreen;
+        while (!quit)
+        {
+            Console.Clear();
+            System.Console.WriteLine(DrawScreen());
+            Move Next = Direction;
+
+            int duration = Score > 50 ? 100 : 250 - 3 * Score;
+            DateTime startTime = DateTime.Now;
+
+            while ((DateTime.Now - startTime).TotalMilliseconds < duration)
+            {
+                if (Console.KeyAvailable)
+                {
+                    ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+
+                    switch (keyInfo.Key)
+                    {
+                        case ConsoleKey.UpArrow:
+                            Next = Move.UP;
+                            break;
+                        case ConsoleKey.DownArrow:
+                            Next = Move.DOWN;
+                            break;
+                        case ConsoleKey.LeftArrow:
+                            Next = Move.LEFT;
+                            break;
+                        case ConsoleKey.RightArrow:
+                            Next = Move.RIGHT;
+                            break;
+                    }
+                }
+            }
+            if (!ProcessMove(Next))
+            {
+                System.Console.WriteLine($"Over: Score {Score}");
+                System.Console.WriteLine("Press r to restart or anything else to quit");
+                string op = Console.ReadLine() ?? "";
+                switch (op)
+                {
+                    case "r":
+                        Clear();
+                        quit = false;
+                        break;
+                    default:
+                        return;
+                }
+            }
+        }
+    }
+
+    private void Clear()
+    {
+
+        CurrentCoordinate = new()
+        {
+            X = 1,
+            Y = 1
+        };
+
+        if (Score > HighScore)
+        {
+            HighScore = Score;
         }
 
-        return screen;
+        Score = 0;
+
+        Direction = Move.RIGHT;
+
+        Coordinates = [];
+
+        Point = GenerateNewPoint();
     }
 }
