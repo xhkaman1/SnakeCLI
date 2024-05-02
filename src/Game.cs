@@ -131,6 +131,8 @@ public class Game
 
     public string DrawScreen()
     {
+        Console.BackgroundColor = ConsoleColor.Black;
+        Console.ForegroundColor = ConsoleColor.DarkGreen;
         if (Point.X == 0)
         {
             Point = GenerateNewPoint();
@@ -200,6 +202,9 @@ public class Game
 
     public void Run()
     {
+
+        Console.BackgroundColor = ConsoleColor.Black;
+        Console.ForegroundColor = ConsoleColor.DarkGreen;
         bool quit = false;
 
         sb.Append(@"███████╗███╗   ██╗ █████╗ ██╗  ██╗███████╗
@@ -212,9 +217,6 @@ public class Game
 
         Thread.Sleep(500);
 
-
-        Console.BackgroundColor = ConsoleColor.Black;
-        Console.ForegroundColor = ConsoleColor.DarkGreen;
         System.Console.WriteLine(sb.ToString());
 
         while(true){
