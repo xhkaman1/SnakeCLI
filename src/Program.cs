@@ -1,2 +1,2 @@
-﻿Game game = new Game(15,15);
+﻿Game game = new Game();
 game.Run();

@@ -2,13 +2,8 @@ using System.Text;
 
 public class Game
 {
-    public int Length;
-    public int Width;
-
-    public Game(int length, int width){
-        Length = length;
-        Width = width;
-    }
+    public byte Length {get; set;} = 10;
+    public byte Width {get; set;} = 10;
 
     public byte Score { get; set; } = 0;
     public byte HighScore { get; set; } = 0;
@@ -229,93 +224,128 @@ public class Game
             }
         }
 
+        Console.Clear();
+        System.Console.WriteLine("What size do you want your field to be (min. 10)? \n(If you give 10, for example the field will be 10 by 10)");
+        while(true){
+            byte.TryParse(Console.ReadLine(), out byte d);
+
+            if(d <= 0){
+                System.Console.WriteLine("Give a valid number");
+                continue;
+            }else if( d < 10){
+                Length = 10;
+                Width = 10;
+            }else if(d > 15){
+                Length = 15;
+                Width = 15;
+            }
+            else{
+                Length = d;
+                Width = d;
+            }
+            break;
+        }
+
         while (!quit)
         {
             Console.Clear();
-            System.Console.WriteLine(DrawScreen());
-            Move Next = Direction;
+            Console.WriteLine(DrawScreen());
 
-            int duration = Score > 50 ? 100 : 250 - 3 * Score;
-            DateTime startTime = DateTime.Now;
-
-            while ((DateTime.Now - startTime).TotalMilliseconds < duration)
-            {
-                if (Console.KeyAvailable)
-                {
-                    ConsoleKeyInfo keyInfo = Console.ReadKey(true);
-
-                    switch (keyInfo.Key)
-                    {
-                        case ConsoleKey.UpArrow:
-                            Next = Move.UP;
-                            break;
-                        case ConsoleKey.DownArrow:
-                            Next = Move.DOWN;
-                            break;
-                        case ConsoleKey.LeftArrow:
-                            Next = Move.LEFT;
-                            break;
-                        case ConsoleKey.RightArrow:
-                            Next = Move.RIGHT;
-                            break;
-                    }
-                }
-            }
-            quit = !ProcessMove(Next);
+            ListenMove(out quit);
             if (quit)
             {
-                Console.CursorVisible = false;
-                string[] options = { "YES", "NO" };
-                int selectedIndex = 0;
+                HandleGameOver(ref quit);
+            }
 
-                Console.WriteLine($"Game Over: Score {Score}");
-                Console.WriteLine("Want to restart?");
+            Thread.Sleep(100);
+        }
+    }
 
-                ConsoleKeyInfo key;
-                do
+    private void HandleGameOver(ref bool quit)
+    {
+        Console.CursorVisible = false;
+        string[] options = { "YES", "NO" };
+        int selectedIndex = 0;
+
+        Console.WriteLine($"Game Over: Score {Score}");
+        Console.WriteLine("Want to restart?");
+
+        ConsoleKeyInfo key;
+        do
+        {
+            for (int i = 0; i < options.Length; i++)
+            {
+                if (i == selectedIndex)
                 {
-                    for (int i = 0; i < options.Length; i++)
-                    {
-                        if (i == selectedIndex)
-                        {
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.Write("> ");
-                        }
-                        else
-                        {
-                            Console.Write("  ");
-                        }
-                        Console.WriteLine(options[i]);
-                        Console.ResetColor();
-                    }
-                    key = Console.ReadKey(true);
-                    if (key.Key == ConsoleKey.UpArrow)
-                    {
-                        selectedIndex = (selectedIndex - 1 + options.Length) % options.Length;
-                    }
-                    else if (key.Key == ConsoleKey.DownArrow)
-                    {
-                        selectedIndex = (selectedIndex + 1) % options.Length;
-                    }
-                    Console.SetCursorPosition(0, Console.CursorTop - 2);
-                    Console.Write("\n\n");
-                    Console.SetCursorPosition(0, Console.CursorTop - 2);
-
-                } while (key.Key != ConsoleKey.Enter);
-
-                if (selectedIndex == 0)
-                {
-                    Reset();
-                    quit = false;
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write("> ");
                 }
                 else
                 {
-                    Console.Clear();
-                    System.Console.WriteLine("Thank you for playing! See you later.");
-                    return;
+                    Console.Write("  ");
+                }
+                Console.WriteLine(options[i]);
+                Console.ResetColor();
+            }
+            key = Console.ReadKey(true);
+            if (key.Key == ConsoleKey.UpArrow)
+            {
+                selectedIndex = (selectedIndex - 1 + options.Length) % options.Length;
+            }
+            else if (key.Key == ConsoleKey.DownArrow)
+            {
+                selectedIndex = (selectedIndex + 1) % options.Length;
+            }
+            Console.SetCursorPosition(0, Console.CursorTop - 2);
+            Console.Write("\n\n");
+            Console.SetCursorPosition(0, Console.CursorTop - 2);
+
+        } while (key.Key != ConsoleKey.Enter);
+
+        if (selectedIndex == 0)
+        {
+            Reset();
+            quit = false;
+        }
+        else
+        {
+            Console.Clear();
+            System.Console.WriteLine("Thank you for playing! See you later.");
+            return;
+        }
+    }
+
+    private void ListenMove(out bool quit)
+    {
+        Move Next = Direction;
+
+        int duration = Score > 100 ? 100 : 300 - 2 * Score;
+        DateTime startTime = DateTime.Now;
+
+        while ((DateTime.Now - startTime).TotalMilliseconds < duration)
+        {
+            if (Console.KeyAvailable)
+            {
+                ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+
+                switch (keyInfo.Key)
+                {
+                    case ConsoleKey.UpArrow:
+                        Next = Move.UP;
+                        break;
+                    case ConsoleKey.DownArrow:
+                        Next = Move.DOWN;
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        Next = Move.LEFT;
+                        break;
+                    case ConsoleKey.RightArrow:
+                        Next = Move.RIGHT;
+                        break;
                 }
             }
         }
+        quit = !ProcessMove(Next);
     }
 
     private void Reset()
