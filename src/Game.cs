@@ -2,10 +2,18 @@ using System.Text;
 
 public class Game
 {
+    public int Length;
+    public int Width;
+
+    public Game(int length, int width){
+        Length = length;
+        Width = width;
+    }
+
     public byte Score { get; set; } = 0;
     public byte HighScore { get; set; } = 0;
 
-    private StringBuilder sb = new StringBuilder(180);
+    private StringBuilder sb = new StringBuilder();
 
     public Coordinate Point { get; set; }
 
@@ -26,8 +34,8 @@ public class Game
 
         do
         {
-            x = (byte)Math.Ceiling(randomizer.NextDouble() * 10);
-            y = (byte)Math.Ceiling(randomizer.NextDouble() * 10);
+            x = (byte)Math.Ceiling(randomizer.NextDouble() * Width);
+            y = (byte)Math.Ceiling(randomizer.NextDouble() * Length);
         } while (Coordinates.Any(c => c.X == x && c.Y == y));
 
         var coord = new Coordinate
@@ -89,7 +97,7 @@ public class Game
                     break;
             }
         }
-        bool IsStillIn = this.IsStillInGame();
+        bool IsStillIn = IsStillInGame();
         UpdateSnake();
 
         return IsStillIn;
@@ -97,7 +105,7 @@ public class Game
 
     private bool IsStillInGame()
     {
-        if (CurrentCoordinate.X > 10 || CurrentCoordinate.X < 1 || CurrentCoordinate.Y > 10 || CurrentCoordinate.Y < 1)
+        if (CurrentCoordinate.X > Width || CurrentCoordinate.X < 1 || CurrentCoordinate.Y > Length || CurrentCoordinate.Y < 1)
         {
             return false;
         }
@@ -133,30 +141,25 @@ public class Game
             Point = GenerateNewPoint();
         }
         sb.Clear();
-        sb = new StringBuilder(200);
         sb.Append($"Score: {Score}\nHighscore: {HighScore}\n");
-        char nextChar = '^';
 
-        for (byte i = 0; i < 12; i++)
+        for (byte i = 0; i < Length + 2; i++)
         {
-            for (byte j = 0; j < 12; j++)
+            for (byte j = 0; j < Width + 2; j++)
             {
                 if (i == 0)
                 {
-                    nextChar = '_';
-                    sb.Append(nextChar);
+                    sb.Append("__");
                     continue;
                 }
-                if (j == 0 || j == 11)
+                if (j == 0 || j == Width + 1)
                 {
-                    nextChar = '|';
-                    sb.Append(nextChar);
+                    sb.Append("|");
                     continue;
                 }
-                if (i == 11)
+                if (i == Length + 1)
                 {
-                    nextChar = '-';
-                    sb.Append(nextChar);
+                    sb.Append("--");
                     continue;
                 }
 
@@ -165,38 +168,34 @@ public class Game
                     switch (Direction)
                     {
                         case Move.UP:
-                            nextChar = '^';
+                            sb.Append("/\\");
                             break;
                         case Move.DOWN:
-                            nextChar = 'v';
+                            sb.Append("\\/");
                             break;
                         case Move.LEFT:
-                            nextChar = '<';
+                            sb.Append("<#");
                             break;
                         case Move.RIGHT:
-                            nextChar = '>';
+                            sb.Append("#>");
                             break;
                     }
-                    sb.Append(nextChar);
                     continue;
                 }
 
                 if (Point.X == j && Point.Y == i)
                 {
-                    nextChar = '@';
-                    sb.Append(nextChar);
+                    sb.Append("[]");
                     continue;
                 }
 
                 if (Coordinates.Any(c => c.X == j && c.Y == i))
                 {
-                    nextChar = '#';
-                    sb.Append(nextChar);
+                    sb.Append("##");
                     continue;
                 }
 
-                nextChar = ' ';
-                sb.Append(nextChar);
+                sb.Append("  ");
                 continue;
             }
             sb.AppendLine();
@@ -208,8 +207,28 @@ public class Game
     {
         bool quit = false;
 
+        sb.Append(@"███████╗███╗   ██╗ █████╗ ██╗  ██╗███████╗
+██╔════╝████╗  ██║██╔══██╗██║ ██╔╝██╔════╝
+███████╗██╔██╗ ██║███████║█████╔╝ █████╗  
+╚════██║██║╚██╗██║██╔══██║██╔═██╗ ██╔══╝  
+███████║██║ ╚████║██║  ██║██║  ██╗███████╗
+╚══════╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝");
+        sb.AppendLine("\n\n\nPress any button to start");
+
+        Thread.Sleep(500);
+
+
         Console.BackgroundColor = ConsoleColor.Black;
         Console.ForegroundColor = ConsoleColor.DarkGreen;
+        System.Console.WriteLine(sb.ToString());
+
+        while(true){
+            if(Console.KeyAvailable){
+                sb.Clear();
+                break;
+            }
+        }
+
         while (!quit)
         {
             Console.Clear();
@@ -245,25 +264,61 @@ public class Game
             quit = !ProcessMove(Next);
             if (quit)
             {
-                System.Console.WriteLine($"Game Over: Score {Score}");
-                System.Console.WriteLine("Press R to restart or anything else to quit");
-                while(quit){
-                    ConsoleKeyInfo keyInfo = Console.ReadKey(true);
-                    switch(keyInfo.Key){
-                        case ConsoleKey.R:
-                            Clear();
-                            quit = false;
-                            break;
-                        default:
-                            return;
-                    }
+                Console.CursorVisible = false;
+                string[] options = { "YES", "NO" };
+                int selectedIndex = 0;
 
+                Console.WriteLine($"Game Over: Score {Score}");
+                Console.WriteLine("Want to restart?");
+
+                ConsoleKeyInfo key;
+                do
+                {
+                    for (int i = 0; i < options.Length; i++)
+                    {
+                        if (i == selectedIndex)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write("> ");
+                        }
+                        else
+                        {
+                            Console.Write("  ");
+                        }
+                        Console.WriteLine(options[i]);
+                        Console.ResetColor();
+                    }
+                    key = Console.ReadKey(true);
+                    if (key.Key == ConsoleKey.UpArrow)
+                    {
+                        selectedIndex = (selectedIndex - 1 + options.Length) % options.Length;
+                    }
+                    else if (key.Key == ConsoleKey.DownArrow)
+                    {
+                        selectedIndex = (selectedIndex + 1) % options.Length;
+                    }
+                    Console.SetCursorPosition(0, Console.CursorTop - 2);
+                    Console.Write("\n\n");
+                    Console.SetCursorPosition(0, Console.CursorTop - 2);
+
+                } while (key.Key != ConsoleKey.Enter);
+
+                if (selectedIndex == 0)
+                {
+                    Reset();
+                    quit = false;
+                }
+                else
+                {
+                    Console.Clear();
+                    System.Console.WriteLine("Thank you for playing! See you later.");
+                    return;
                 }
             }
         }
     }
 
-    private void Clear()
+    private void Reset()
     {
 
         CurrentCoordinate = new()
