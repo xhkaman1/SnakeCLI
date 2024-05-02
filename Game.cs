@@ -242,19 +242,22 @@ public class Game
                     }
                 }
             }
-            if (!ProcessMove(Next))
+            quit = !ProcessMove(Next);
+            if (quit)
             {
-                System.Console.WriteLine($"Over: Score {Score}");
-                System.Console.WriteLine("Press r to restart or anything else to quit");
-                string op = Console.ReadLine() ?? "";
-                switch (op)
-                {
-                    case "r":
-                        Clear();
-                        quit = false;
-                        break;
-                    default:
-                        return;
+                System.Console.WriteLine($"Game Over: Score {Score}");
+                System.Console.WriteLine("Press R to restart or anything else to quit");
+                while(quit){
+                    ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+                    switch(keyInfo.Key){
+                        case ConsoleKey.R:
+                            Clear();
+                            quit = false;
+                            break;
+                        default:
+                            return;
+                    }
+
                 }
             }
         }
